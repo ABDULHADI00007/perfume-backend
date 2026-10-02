@@ -3,21 +3,23 @@ const { z } = require('zod');
 const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 
 const orderItemInputSchema = z.object({
-  productId: z.string().regex(objectIdRegex, 'Invalid product ID format'),
+  productId: z.string().min(1, 'Product ID is required'),
   sku: z.string().min(1, 'Product SKU is required'),
-  size: z.string().optional(),
+  name: z.string().optional().nullable(),
+  size: z.string().optional().nullable(),
   quantity: z.number().int().min(1, 'Quantity must be at least 1'),
+  image: z.string().optional().nullable(),
 });
 
 const addressInputSchema = z.object({
   fullName: z.string().min(2, 'Full name is required'),
   phone: z.string().min(5, 'Phone number is required'),
-  addressLine1: z.string().min(3, 'Address line 1 is required'),
-  addressLine2: z.string().optional(),
+  addressLine1: z.string().min(2, 'Address line 1 is required'),
+  addressLine2: z.string().optional().nullable(),
   city: z.string().min(2, 'City is required'),
-  state: z.string().min(2, 'State / Province is required'),
+  state: z.string().optional().default('N/A'),
   postalCode: z.string().min(2, 'Postal code is required'),
-  country: z.string().min(2, 'Country is required').default('US'),
+  country: z.string().optional().default('US'),
 });
 
 const createOrderSchema = z.object({
@@ -25,15 +27,15 @@ const createOrderSchema = z.object({
     customer: z.object({
       name: z.string().min(2, 'Customer name is required'),
       email: z.string().email('Valid customer email is required'),
-      phone: z.string().optional(),
+      phone: z.string().optional().nullable(),
     }),
     items: z.array(orderItemInputSchema).min(1, 'At least one item is required to place an order'),
     shippingAddress: addressInputSchema,
-    billingAddress: addressInputSchema.optional(),
+    billingAddress: addressInputSchema.optional().nullable(),
     paymentMethod: z.enum(['cash_on_delivery', 'bank_transfer', 'cod']).default('cash_on_delivery'),
-    couponCode: z.string().trim().optional(),
-    notes: z.string().max(500).optional(),
-    idempotencyKey: z.string().trim().optional(),
+    couponCode: z.string().trim().optional().nullable(),
+    notes: z.string().max(500).optional().nullable(),
+    idempotencyKey: z.string().trim().optional().nullable(),
   }),
 });
 

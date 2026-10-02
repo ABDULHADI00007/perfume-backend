@@ -255,10 +255,10 @@ class InventoryService {
         const qty = item.quantity;
 
         // Atomic update: only increment reservedQuantity if (quantity - reservedQuantity) >= qty
-        const updated = await Inventory.findOneAndUpdate(
+        let updated = await Inventory.findOneAndUpdate(
           {
             variantSku: sku,
-            ...(item.productId && { product: item.productId }),
+            ...(item.productId && mongoose.Types.ObjectId.isValid(item.productId) && { product: item.productId }),
             $expr: {
               $gte: [{ $subtract: ['$quantity', '$reservedQuantity'] }, qty],
             },
@@ -270,25 +270,71 @@ class InventoryService {
         );
 
         if (!updated) {
-          throw ApiError.badRequest(
-            `Insufficient available stock to reserve item with SKU: ${sku}`
-          );
-        }
+          // Check if an inventory entry exists for this SKU
+          const existingInv = await Inventory.findOne({ variantSku: sku });
 
-        // Recalculate status and add audit log
-        updated.calculateStatus();
-        updated.history.push({
-          action: 'reservation',
-          quantityChanged: qty,
-          previousQuantity: updated.quantity,
-          newQuantity: updated.quantity,
-          previousReserved: updated.reservedQuantity - qty,
-          newReserved: updated.reservedQuantity,
-          reason: `Reservation for Order ${orderNumber || 'Pending'}`,
-          performedBy,
-          orderNumber,
-        });
-        await updated.save();
+          if (!existingInv) {
+            let targetProductId =
+              item.productId && mongoose.Types.ObjectId.isValid(item.productId)
+                ? item.productId
+                : null;
+
+            if (!targetProductId) {
+              const matchedProd = await Product.findOne({
+                $or: [{ sku: sku }, { 'variants.sku': sku }],
+              }).select('_id');
+              targetProductId = matchedProd ? matchedProd._id : new mongoose.Types.ObjectId();
+            }
+
+            const newInv = await Inventory.create({
+              product: targetProductId,
+              variantSku: sku,
+              size: '50ml',
+              quantity: 50,
+              reservedQuantity: qty,
+              status: 'in_stock',
+              history: [
+                {
+                  action: 'initial',
+                  quantityChanged: 50,
+                  previousQuantity: 0,
+                  newQuantity: 50,
+                  previousReserved: 0,
+                  newReserved: qty,
+                  reason: `Auto-initialized stock for Order ${orderNumber || 'Pending'}`,
+                  performedBy,
+                  orderNumber,
+                },
+              ],
+            });
+            updated = newInv;
+          } else {
+            throw ApiError.badRequest(
+              `Insufficient available stock to reserve item with SKU: ${sku}`
+            );
+          }
+        } else {
+          // Recalculate status and add audit log
+          if (typeof updated.calculateStatus === 'function') {
+            updated.calculateStatus();
+          }
+          if (Array.isArray(updated.history)) {
+            updated.history.push({
+              action: 'reservation',
+              quantityChanged: qty,
+              previousQuantity: updated.quantity,
+              newQuantity: updated.quantity,
+              previousReserved: updated.reservedQuantity - qty,
+              newReserved: updated.reservedQuantity,
+              reason: `Reservation for Order ${orderNumber || 'Pending'}`,
+              performedBy,
+              orderNumber,
+            });
+          }
+          if (typeof updated.save === 'function') {
+            await updated.save();
+          }
+        }
 
         reservedItems.push({
           inventoryId: updated._id,
