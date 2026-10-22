@@ -338,7 +338,7 @@ class ProductsService {
     }
 
     // Check category validity if changed
-    if (updateData.category && updateData.category.toString() !== product.category.toString()) {
+    if (updateData.category && (!product.category || updateData.category.toString() !== product.category.toString())) {
       const categoryExists = await Category.findById(updateData.category);
       if (!categoryExists) {
         throw ApiError.badRequest(`Category with ID ${updateData.category} does not exist`);

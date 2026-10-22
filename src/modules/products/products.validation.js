@@ -2,8 +2,13 @@ const { z } = require('zod');
 
 const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 
+const objectIdSchema = z.union([
+  z.string().regex(objectIdRegex, 'Invalid ID format'),
+  z.object({ _id: z.string().regex(objectIdRegex, 'Invalid ID format') }).transform((val) => val._id),
+]);
+
 const productImageSchema = z.object({
-  url: z.string().url('Image URL must be a valid URL'),
+  url: z.string().trim().min(1, 'Image URL or path is required'),
   altText: z.string().trim().optional(),
   publicId: z.string().optional(),
   isPrimary: z.boolean().optional().default(false),
@@ -33,10 +38,13 @@ const fragranceSchema = z.object({
 });
 
 const seoValidationSchema = z.object({
-  metaTitle: z.string().max(70).optional(),
-  metaDescription: z.string().max(160).optional(),
+  title: z.string().max(100).optional(),
+  description: z.string().max(500).optional(),
+  metaTitle: z.string().max(100).optional(),
+  metaDescription: z.string().max(500).optional(),
   keywords: z.array(z.string()).optional().default([]),
-  canonicalUrl: z.string().url().optional(),
+  canonicalUrl: z.string().optional(),
+  ogImage: z.string().optional(),
 });
 
 const createProductSchema = z.object({
@@ -53,8 +61,8 @@ const createProductSchema = z.object({
     compareAtPrice: z.number().min(0).optional(),
     currency: z.string().optional().default('USD'),
     images: z.array(productImageSchema).optional().default([]),
-    category: z.string().regex(objectIdRegex, 'Invalid category ID format'),
-    collections: z.array(z.string().regex(objectIdRegex, 'Invalid collection ID format')).optional().default([]),
+    category: objectIdSchema,
+    collections: z.array(objectIdSchema).optional().default([]),
     fragrance: fragranceSchema.optional().default({}),
     scentFamily: z.array(z.string()).optional().default([]),
     season: z.array(z.string()).optional().default([]),
@@ -84,8 +92,8 @@ const updateProductSchema = z.object({
     compareAtPrice: z.number().min(0).optional(),
     currency: z.string().optional(),
     images: z.array(productImageSchema).optional(),
-    category: z.string().regex(objectIdRegex, 'Invalid category ID format').optional(),
-    collections: z.array(z.string().regex(objectIdRegex, 'Invalid collection ID format')).optional(),
+    category: objectIdSchema.optional(),
+    collections: z.array(objectIdSchema).optional(),
     fragrance: fragranceSchema.partial().optional(),
     scentFamily: z.array(z.string()).optional(),
     season: z.array(z.string()).optional(),

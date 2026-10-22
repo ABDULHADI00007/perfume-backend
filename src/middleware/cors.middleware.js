@@ -3,7 +3,10 @@ const cors = require('cors');
 const corsOptions = {
   origin: (origin, callback) => {
     const allowedOrigins = [
-      process.env.CLIENT_URL || 'http://localhost:3000',
+      process.env.CLIENT_URL || 'http://localhost:4300',
+      'http://localhost:4300',
+      'http://localhost:3000',
+      'http://localhost:3001',
       'http://localhost:5000',
     ];
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
