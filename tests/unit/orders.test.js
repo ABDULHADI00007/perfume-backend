@@ -236,5 +236,31 @@ describe('Orders Business Logic & Lifecycle Suite', () => {
       expect(secondCall.orderStatus).toBe('cancelled');
       expect(inventoryService.releaseReservation).toHaveBeenCalledTimes(1); // Not called again!
     });
+
+    test('updatePaymentStatus directly updates payment status and records paid timestamp', async () => {
+      const mockOrder = {
+        _id: new mongoose.Types.ObjectId(),
+        orderNumber: 'ORD-2026-T4',
+        orderStatus: 'pending',
+        paymentStatus: 'pending',
+        paymentMethod: 'cash_on_delivery',
+        save: jest.fn().mockResolvedValue(true),
+      };
+
+      jest.spyOn(ordersService, 'getOrderById').mockResolvedValue(mockOrder);
+
+      const updated = await ordersService.updatePaymentStatus(
+        mockOrder._id.toString(),
+        'paid',
+        'Received in cash',
+        { id: 'admin123' }
+      );
+
+      expect(updated.paymentStatus).toBe('paid');
+      expect(updated.orderStatus).toBe('confirmed');
+      expect(updated.paymentInfo.paidAt).toBeDefined();
+      expect(updated.notes).toContain('Received in cash');
+      expect(mockOrder.save).toHaveBeenCalled();
+    });
   });
 });

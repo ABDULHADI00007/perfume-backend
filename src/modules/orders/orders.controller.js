@@ -64,6 +64,19 @@ const rejectPayment = asyncHandler(async (req, res) => {
 });
 
 /**
+ * Admin: Directly update order payment status
+ */
+const updatePaymentStatus = asyncHandler(async (req, res) => {
+  const order = await ordersService.updatePaymentStatus(
+    req.params.id,
+    req.body.paymentStatus,
+    req.body.notes,
+    req.user
+  );
+  return ApiResponse.success(res, 200, 'Payment status updated successfully', order);
+});
+
+/**
  * Admin: Update order status with strict lifecycle rules
  */
 const updateOrderStatus = asyncHandler(async (req, res) => {
@@ -115,6 +128,7 @@ module.exports = {
   getOrderById,
   approvePayment,
   rejectPayment,
+  updatePaymentStatus,
   updateOrderStatus,
   cancelOrder,
   updateShippingInfo,

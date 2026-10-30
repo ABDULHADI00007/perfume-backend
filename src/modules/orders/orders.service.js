@@ -521,6 +521,50 @@ class OrdersService {
   }
 
   /**
+   * Admin: Directly update payment status (COD, Bank Transfer, Card)
+   * @param {string} orderId
+   * @param {string} paymentStatus
+   * @param {string} [notes]
+   * @param {Object} [adminUser]
+   */
+  async updatePaymentStatus(orderId, paymentStatus, notes = null, adminUser = null) {
+    const order = await this.getOrderById(orderId);
+
+    const previousStatus = order.paymentStatus;
+    order.paymentStatus = paymentStatus;
+
+    if (paymentStatus === 'paid') {
+      if (!order.paymentInfo) {
+        order.paymentInfo = {};
+      }
+      order.paymentInfo.paidAt = new Date();
+      order.paymentVerification = {
+        verifiedAt: new Date(),
+        verifiedBy: adminUser?._id || adminUser?.id || undefined,
+        rejectionReason: undefined,
+      };
+
+      // Auto-confirm pending orders if payment is marked as paid
+      if (order.orderStatus === 'pending' || order.orderStatus === 'awaiting_payment_verification') {
+        order.orderStatus = 'confirmed';
+      }
+    } else if (paymentStatus === 'rejected' || paymentStatus === 'failed') {
+      if (!order.paymentVerification) {
+        order.paymentVerification = {};
+      }
+      order.paymentVerification.rejectionReason = notes || 'Payment marked as failed/rejected';
+    }
+
+    if (notes && notes.trim()) {
+      const logEntry = `[Payment Status: ${previousStatus} -> ${paymentStatus}]: ${notes.trim()}`;
+      order.notes = order.notes ? `${order.notes}\n${logEntry}` : logEntry;
+    }
+
+    await order.save();
+    return order;
+  }
+
+  /**
    * Public: Retrieve sanitized order confirmation by order number
    * @param {string} orderNumber
    */

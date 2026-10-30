@@ -12,10 +12,14 @@ const corsMiddleware = require('./middleware/cors.middleware');
 const { globalRateLimiter } = require('./middleware/rateLimit.middleware');
 const errorHandler = require('./middleware/error.middleware');
 const ApiError = require('./utils/apiError');
+const path = require('path');
 const apiRoutes = require('./routes');
 const logger = require('./utils/logger');
 
 const app = express();
+
+// Serve static uploads
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Security Headers
 app.use(helmetMiddleware);

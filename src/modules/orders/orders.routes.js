@@ -3,6 +3,7 @@ const ordersController = require('./orders.controller');
 const {
   createOrderSchema,
   updateOrderStatusSchema,
+  updatePaymentStatusSchema,
   updateShippingInfoSchema,
   cancelOrderSchema,
   refundOrderSchema,
@@ -57,6 +58,14 @@ router.post(
   authorize(ROLES.ADMIN),
   validate(rejectPaymentSchema),
   ordersController.rejectPayment
+);
+
+router.patch(
+  '/:id/payment-status',
+  authenticate,
+  authorize(ROLES.ADMIN),
+  validate(updatePaymentStatusSchema),
+  ordersController.updatePaymentStatus
 );
 
 router.patch(

@@ -59,6 +59,24 @@ const updateOrderStatusSchema = z.object({
   }),
 });
 
+const updatePaymentStatusSchema = z.object({
+  params: z.object({
+    id: z.string(),
+  }),
+  body: z.object({
+    paymentStatus: z.enum([
+      'pending',
+      'pending_verification',
+      'paid',
+      'rejected',
+      'failed',
+      'refunded',
+      'partially_refunded',
+    ]),
+    notes: z.string().optional(),
+  }),
+});
+
 const updateShippingInfoSchema = z.object({
   params: z.object({
     id: z.string(),
@@ -151,6 +169,7 @@ const queryOrdersSchema = z.object({
 module.exports = {
   createOrderSchema,
   updateOrderStatusSchema,
+  updatePaymentStatusSchema,
   updateShippingInfoSchema,
   cancelOrderSchema,
   refundOrderSchema,
