@@ -201,7 +201,7 @@ const INITIAL_PRODUCTS = [
     variants: [
       { size: '50ml', price: 11500, sku: 'SS-SG-50', stock: 24, status: 'active' },
     ],
-    images: [{ url: '/images/perfumes/Secret Garden in Sunlit Bloom.png', isPrimary: true, altText: 'Secret Garden Eau de Parfum' }],
+    images: [{ url: '/images/perfumes/Secret Garden Perfume in Bloom.png', isPrimary: true, altText: 'Secret Garden Eau de Parfum' }],
     seo: {
       title: 'Secret Garden EDP (50ml) | Soulmate Scents',
       description: 'Explore Secret Garden EDP (50ml) by Soulmate Scents. A refreshing, sophisticated fragrance with Japanese Yuzu, Blue Lotus, Cinnamon, and Sandalwood.',
@@ -291,7 +291,7 @@ const INITIAL_PRODUCTS = [
     variants: [
       { size: '50ml', price: 12200, sku: 'SS-SR-50', stock: 28, status: 'active' },
     ],
-    images: [{ url: '/images/perfumes/surror.png', isPrimary: true, altText: 'Suroor Eau de Parfum' }],
+    images: [{ url: '/images/perfumes/suroor-still-life.png', isPrimary: true, altText: 'Suroor Eau de Parfum' }],
     seo: {
       title: 'Suroor EDP (50ml) | Soulmate Scents',
       description: 'Fall in love with Suroor EDP (50ml) by Soulmate Scents. A joyful floral-fruity fragrance with crisp Apple, Black Currant, Jasmine, and soft Vanilla.',
@@ -321,7 +321,7 @@ const INITIAL_PRODUCTS = [
     variants: [
       { size: '50ml', price: 11800, sku: 'SS-GM-50', stock: 22, status: 'active' },
     ],
-    images: [{ url: '/images/perfumes/gentleman.png', isPrimary: true, altText: 'Gentle Man Eau de Parfum' }],
+    images: [{ url: '/images/perfumes/gentle-man-still-life.png', isPrimary: true, altText: 'Gentle Man Eau de Parfum' }],
     seo: {
       title: 'Gentle Man EDP (50ml) | Soulmate Scents',
       description: 'Elevate your style with Gentle Man EDP (50ml) by Soulmate Scents. A suave, contrasting scent of ruby Grapefruit, spicy Ginger, and rich Ambroxan.',
@@ -350,7 +350,7 @@ const INITIAL_PRODUCTS = [
     variants: [
       { size: '50ml', price: 12500, sku: 'SS-DK-50', stock: 35, status: 'active' },
     ],
-    images: [{ url: '/images/perfumes/dusk.png', isPrimary: true, altText: 'Dusk Eau de Parfum' }],
+    images: [{ url: '/images/perfumes/dusk-still-life.png', isPrimary: true, altText: 'Dusk Eau de Parfum' }],
     seo: {
       title: 'Dusk EDP (50ml) | Soulmate Scents',
       description: 'Shop Dusk EDP (50ml) by Soulmate Scents. A universally loved, versatile fragrance combining Calabrian Bergamot, spicy Pepper, Lavender, and Ambroxan.',

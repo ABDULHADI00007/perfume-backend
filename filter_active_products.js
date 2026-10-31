@@ -22,10 +22,10 @@ async function main() {
   ];
   
   const productUpdates = {
-    'dusk': { url: '/images/perfumes/Soulmate Dusk in Golden Hour.png', altText: 'Soulmate Dusk', rating: 5, gender: 'men' },
-    'suroor': { url: '/images/perfumes/Suroor Perfume in a Golden Zen Sanctuary.png', altText: 'Suroor Perfume', rating: 5, gender: 'women' },
-    'gentle-man': { url: '/images/perfumes/Golden Hour Gentle Man Perfume.png', altText: 'Gentle Man Perfume', rating: 4, gender: 'men' },
-    'secret-garden': { url: '/images/perfumes/Secret Garden in Sunlit Bloom.png', altText: 'Secret Garden in Sunlit Bloom', rating: 4, gender: 'men' },
+    'dusk': { url: '/images/perfumes/dusk-still-life.png', altText: 'Soulmate Dusk', rating: 5, gender: 'men' },
+    'suroor': { url: '/images/perfumes/suroor-still-life.png', altText: 'Suroor Perfume', rating: 5, gender: 'women' },
+    'gentle-man': { url: '/images/perfumes/gentle-man-still-life.png', altText: 'Gentle Man Perfume', rating: 4, gender: 'men' },
+    'secret-garden': { url: '/images/perfumes/Secret Garden Perfume in Bloom.png', altText: 'Secret Garden Perfume in Bloom', rating: 4, gender: 'men' },
     'infinite-boss': { url: '/images/perfumes/Infinite Boss in Golden Stone Light.png', altText: 'Infinite Boss', rating: 5, gender: 'men' },
     'pulse': { url: '/images/perfumes/pulse-luxury.jpg', altText: 'Pulse Luxury', rating: 5, gender: 'men' },
     'whispers-bloom': { url: '/images/perfumes/Whispers Bloom Luxury Perfume Still Life.png', altText: 'Whispers Bloom', rating: 4, gender: 'women' },
