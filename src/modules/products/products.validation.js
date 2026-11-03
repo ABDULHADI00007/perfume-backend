@@ -72,6 +72,10 @@ const createProductSchema = z.object({
     featured: z.boolean().optional().default(false),
     bestseller: z.boolean().optional().default(false),
     newArrival: z.boolean().optional().default(false),
+    ratingAverage: z.number().min(0).max(5).optional(),
+    reviewCount: z.number().int().min(0).optional(),
+    rating: z.number().min(0).max(5).optional(),
+    ratingCount: z.number().int().min(0).optional(),
   }),
 });
 
@@ -103,6 +107,10 @@ const updateProductSchema = z.object({
     featured: z.boolean().optional(),
     bestseller: z.boolean().optional(),
     newArrival: z.boolean().optional(),
+    ratingAverage: z.number().min(0).max(5).optional(),
+    reviewCount: z.number().int().min(0).optional(),
+    rating: z.number().min(0).max(5).optional(),
+    ratingCount: z.number().int().min(0).optional(),
   }),
 });
 

@@ -186,6 +186,7 @@ const orderSchema = new mongoose.Schema(
         'processing',
         'shipped',
         'delivered',
+        'completed',
         'cancelled',
         'refunded',
         'payment_rejected',

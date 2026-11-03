@@ -12,14 +12,15 @@ const { escapeRegex } = require('../../utils/sanitize');
 
 // Allowed status lifecycle transition map
 const ALLOWED_STATUS_TRANSITIONS = {
-  pending: ['awaiting_payment_verification', 'confirmed', 'cancelled', 'payment_rejected'],
-  awaiting_payment_verification: ['confirmed', 'payment_rejected', 'cancelled'],
-  confirmed: ['processing', 'cancelled'],
-  processing: ['shipped', 'cancelled'],
-  shipped: ['delivered', 'cancelled'],
-  delivered: ['refunded'],
-  cancelled: [],
-  payment_rejected: [],
+  pending: ['awaiting_payment_verification', 'confirmed', 'processing', 'shipped', 'delivered', 'completed', 'cancelled', 'payment_rejected'],
+  awaiting_payment_verification: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'completed', 'payment_rejected', 'cancelled'],
+  confirmed: ['pending', 'processing', 'shipped', 'delivered', 'completed', 'cancelled'],
+  processing: ['pending', 'confirmed', 'shipped', 'delivered', 'completed', 'cancelled'],
+  shipped: ['pending', 'confirmed', 'delivered', 'completed', 'cancelled'],
+  delivered: ['pending', 'confirmed', 'completed', 'refunded', 'cancelled'],
+  cancelled: ['pending', 'confirmed', 'delivered'],
+  completed: [],
+  payment_rejected: ['pending', 'confirmed', 'cancelled'],
   refunded: [],
 };
 
@@ -690,19 +691,19 @@ class OrdersService {
       quantity: item.quantity,
     }));
 
-    if (targetStatus === 'shipped' || targetStatus === 'delivered') {
+    if (targetStatus === 'shipped' || targetStatus === 'delivered' || targetStatus === 'completed') {
       // Deduct physical stock on fulfillment if not already deducted
       await inventoryService.commitStockDeduction(itemsToProcess, order.orderNumber, adminId);
       if (targetStatus === 'shipped' && !order.shippingInfo?.shippedAt) {
         order.shippingInfo = { ...(order.shippingInfo || {}), shippedAt: new Date() };
       }
-      if (targetStatus === 'delivered' && !order.shippingInfo?.deliveredAt) {
+      if ((targetStatus === 'delivered' || targetStatus === 'completed') && !order.shippingInfo?.deliveredAt) {
         order.shippingInfo = { ...(order.shippingInfo || {}), deliveredAt: new Date() };
-        if (order.paymentMethod === 'cash_on_delivery') {
-          order.paymentStatus = 'paid';
-          if (!order.paymentInfo) order.paymentInfo = {};
-          order.paymentInfo.paidAt = new Date();
-        }
+      }
+      if (targetStatus === 'completed') {
+        order.paymentStatus = 'paid';
+        if (!order.paymentInfo) order.paymentInfo = {};
+        order.paymentInfo.paidAt = new Date();
       }
     } else if (targetStatus === 'cancelled' || targetStatus === 'payment_rejected') {
       // Release reservation
@@ -740,9 +741,9 @@ class OrdersService {
       return order;
     }
 
-    if (['delivered', 'refunded'].includes(order.orderStatus)) {
+    if (['refunded', 'completed'].includes(order.orderStatus)) {
       throw ApiError.badRequest(
-        `Cannot cancel order with status '${order.orderStatus}'. Use the refund endpoint instead.`
+        `Cannot cancel order with status '${order.orderStatus}'.`
       );
     }
 

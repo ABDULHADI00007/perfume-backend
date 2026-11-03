@@ -51,6 +51,7 @@ const updateOrderStatusSchema = z.object({
       'processing',
       'shipped',
       'delivered',
+      'completed',
       'cancelled',
       'refunded',
       'payment_rejected',
