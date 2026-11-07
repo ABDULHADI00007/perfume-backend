@@ -8,8 +8,7 @@ const {
 } = require('./products.validation');
 const validate = require('../../middleware/validate.middleware');
 const { authenticate } = require('../../middleware/auth.middleware');
-const { authorize } = require('../../middleware/role.middleware');
-const { ROLES } = require('../../utils/constants');
+const { requirePermission } = require('../../middleware/permission.middleware');
 
 const router = express.Router();
 
@@ -23,7 +22,7 @@ router.get('/:slug', productsController.getProductBySlug);
 router.post(
   '/',
   authenticate,
-  authorize(ROLES.ADMIN),
+  requirePermission('products.create'),
   validate(createProductSchema),
   productsController.createProduct
 );
@@ -31,7 +30,7 @@ router.post(
 router.put(
   '/:id',
   authenticate,
-  authorize(ROLES.ADMIN),
+  requirePermission('products.update'),
   validate(updateProductSchema),
   productsController.updateProduct
 );
@@ -39,14 +38,14 @@ router.put(
 router.delete(
   '/:id',
   authenticate,
-  authorize(ROLES.ADMIN),
+  requirePermission('products.archive'),
   productsController.archiveProduct
 );
 
 router.patch(
   '/:id/restore',
   authenticate,
-  authorize(ROLES.ADMIN),
+  requirePermission('products.archive'),
   productsController.restoreProduct
 );
 

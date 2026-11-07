@@ -9,7 +9,13 @@ const router = express.Router();
 router.get(
   '/dashboard',
   authenticate,
-  authorize(ROLES.ADMIN),
+  authorize(
+    ROLES.SUPERADMIN,
+    ROLES.ADMIN,
+    ROLES.SCENT_SPECIALIST,
+    ROLES.INVENTORY_MANAGER,
+    ROLES.STAFF
+  ),
   adminController.getDashboardOverview
 );
 

@@ -2,6 +2,7 @@ const express = require('express');
 const reviewsController = require('./reviews.controller');
 const { authenticate } = require('../../middleware/auth.middleware');
 const { requirePermission } = require('../../middleware/permission.middleware');
+const { reviewRateLimiter } = require('../../middleware/rateLimit.middleware');
 const validate = require('../../middleware/validate.middleware');
 const {
   submitReviewSchema,
@@ -12,8 +13,8 @@ const {
 
 const router = express.Router();
 
-// Public Routes
-router.post('/', validate(submitReviewSchema), reviewsController.submitReview);
+// Public Routes with Dedicated Rate Limiting
+router.post('/', reviewRateLimiter, validate(submitReviewSchema), reviewsController.submitReview);
 router.get('/product/:productId', validate(productReviewParamsSchema), reviewsController.getReviewsForProduct);
 
 // Admin-Protected Routes

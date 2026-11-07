@@ -2,6 +2,7 @@ const express = require('express');
 const couponsController = require('./coupons.controller');
 const { authenticate } = require('../../middleware/auth.middleware');
 const { requirePermission } = require('../../middleware/permission.middleware');
+const { couponRateLimiter } = require('../../middleware/rateLimit.middleware');
 const validate = require('../../middleware/validate.middleware');
 const {
   createCouponSchema,
@@ -12,8 +13,13 @@ const {
 
 const router = express.Router();
 
-// Public Checkout Validation Route
-router.post('/validate', validate(validateCouponSchema), couponsController.validateCoupon);
+// Public Checkout Validation Route with Dedicated Rate Limiting
+router.post(
+  '/validate',
+  couponRateLimiter,
+  validate(validateCouponSchema),
+  couponsController.validateCoupon
+);
 
 // Admin-Protected Routes
 router.use(authenticate);

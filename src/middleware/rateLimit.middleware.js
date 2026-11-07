@@ -42,9 +42,41 @@ const newsletterRateLimiter = rateLimit({
   },
 });
 
+const couponRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 15, // Limit coupon validation to 15 attempts per 15 minutes per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res, next) => {
+    next(
+      new ApiError(
+        HTTP_STATUS.TOO_MANY_REQUESTS,
+        'Too many coupon validation attempts. Please wait 15 minutes before trying again.'
+      )
+    );
+  },
+});
+
+const reviewRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5, // Limit review submissions to 5 per 15 minutes per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res, next) => {
+    next(
+      new ApiError(
+        HTTP_STATUS.TOO_MANY_REQUESTS,
+        'Too many review submissions. Please wait 15 minutes before submitting another review.'
+      )
+    );
+  },
+});
+
 module.exports = {
   globalRateLimiter,
   authRateLimiter,
   checkoutRateLimiter,
   newsletterRateLimiter,
+  couponRateLimiter,
+  reviewRateLimiter,
 };

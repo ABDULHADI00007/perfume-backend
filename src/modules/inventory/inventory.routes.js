@@ -10,21 +10,20 @@ const {
 } = require('./inventory.validation');
 const validate = require('../../middleware/validate.middleware');
 const { authenticate } = require('../../middleware/auth.middleware');
-const { authorize } = require('../../middleware/role.middleware');
-const { ROLES } = require('../../utils/constants');
+const { requirePermission } = require('../../middleware/permission.middleware');
 
 const router = express.Router();
 
-// All Inventory endpoints are admin-protected
-router.use(authenticate, authorize(ROLES.ADMIN));
+// All Inventory endpoints require authentication
+router.use(authenticate);
 
-router.get('/', validate(queryInventorySchema), inventoryController.getInventory);
-router.get('/sku/:sku', inventoryController.getInventoryBySku);
-router.get('/product/:productId', inventoryController.getInventoryByProduct);
-router.post('/', validate(createInventorySchema), inventoryController.createInventory);
-router.patch('/:id/quantity', validate(updateQuantitySchema), inventoryController.updateQuantity);
-router.post('/adjust', validate(adjustStockSchema), inventoryController.adjustStock);
-router.post('/reserve', validate(reserveStockSchema), inventoryController.reserveStock);
-router.post('/release', validate(releaseStockSchema), inventoryController.releaseStock);
+router.get('/', requirePermission('inventory.read'), validate(queryInventorySchema), inventoryController.getInventory);
+router.get('/sku/:sku', requirePermission('inventory.read'), inventoryController.getInventoryBySku);
+router.get('/product/:productId', requirePermission('inventory.read'), inventoryController.getInventoryByProduct);
+router.post('/', requirePermission('inventory.adjust'), validate(createInventorySchema), inventoryController.createInventory);
+router.patch('/:id/quantity', requirePermission('inventory.adjust'), validate(updateQuantitySchema), inventoryController.updateQuantity);
+router.post('/adjust', requirePermission('inventory.adjust'), validate(adjustStockSchema), inventoryController.adjustStock);
+router.post('/reserve', requirePermission('inventory.adjust'), validate(reserveStockSchema), inventoryController.reserveStock);
+router.post('/release', requirePermission('inventory.adjust'), validate(releaseStockSchema), inventoryController.releaseStock);
 
 module.exports = router;

@@ -13,9 +13,8 @@ const {
 } = require('./orders.validation');
 const validate = require('../../middleware/validate.middleware');
 const { authenticate } = require('../../middleware/auth.middleware');
-const { authorize } = require('../../middleware/role.middleware');
+const { requirePermission } = require('../../middleware/permission.middleware');
 const { checkoutRateLimiter } = require('../../middleware/rateLimit.middleware');
-const { ROLES } = require('../../utils/constants');
 
 const router = express.Router();
 
@@ -33,7 +32,7 @@ router.post(
 router.get(
   '/',
   authenticate,
-  authorize(ROLES.ADMIN),
+  requirePermission('orders.read'),
   validate(queryOrdersSchema),
   ordersController.getOrders
 );
@@ -41,21 +40,21 @@ router.get(
 router.get(
   '/:id',
   authenticate,
-  authorize(ROLES.ADMIN),
+  requirePermission('orders.read'),
   ordersController.getOrderById
 );
 
 router.post(
   '/:id/payment/approve',
   authenticate,
-  authorize(ROLES.ADMIN),
+  requirePermission('orders.update'),
   ordersController.approvePayment
 );
 
 router.post(
   '/:id/payment/reject',
   authenticate,
-  authorize(ROLES.ADMIN),
+  requirePermission('orders.update'),
   validate(rejectPaymentSchema),
   ordersController.rejectPayment
 );
@@ -63,7 +62,7 @@ router.post(
 router.patch(
   '/:id/payment-status',
   authenticate,
-  authorize(ROLES.ADMIN),
+  requirePermission('orders.update'),
   validate(updatePaymentStatusSchema),
   ordersController.updatePaymentStatus
 );
@@ -71,7 +70,7 @@ router.patch(
 router.patch(
   '/:id/status',
   authenticate,
-  authorize(ROLES.ADMIN),
+  requirePermission('orders.update'),
   validate(updateOrderStatusSchema),
   ordersController.updateOrderStatus
 );
@@ -79,7 +78,7 @@ router.patch(
 router.patch(
   '/:id/shipping',
   authenticate,
-  authorize(ROLES.ADMIN),
+  requirePermission('orders.update'),
   validate(updateShippingInfoSchema),
   ordersController.updateShippingInfo
 );
@@ -87,7 +86,7 @@ router.patch(
 router.post(
   '/:id/cancel',
   authenticate,
-  authorize(ROLES.ADMIN),
+  requirePermission('orders.cancel'),
   validate(cancelOrderSchema),
   ordersController.cancelOrder
 );
@@ -95,7 +94,7 @@ router.post(
 router.post(
   '/:id/refund',
   authenticate,
-  authorize(ROLES.ADMIN),
+  requirePermission('orders.update'),
   validate(refundOrderSchema),
   ordersController.refundOrder
 );
