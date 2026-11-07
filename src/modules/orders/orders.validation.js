@@ -115,12 +115,18 @@ const submitPaymentProofSchema = z.object({
   params: z.object({
     orderNumberOrId: z.string().min(1, 'Order number or ID is required'),
   }),
-  body: z.object({
-    url: z.string().url('Proof URL must be a valid URL'),
-    storageKey: z.string().optional(),
-    originalName: z.string().optional(),
-    mimeType: z.enum(['image/jpeg', 'image/png', 'image/webp', 'application/pdf']).optional(),
-  }),
+  body: z
+    .object({
+      url: z.string().optional(),
+      storageKey: z.string().optional(),
+      originalName: z.string().optional(),
+      mimeType: z.enum(['image/jpeg', 'image/png', 'image/webp', 'application/pdf']).optional(),
+      token: z.string().optional(),
+      fileData: z.string().optional(),
+    })
+    .refine((data) => Boolean(data.url || data.fileData), {
+      message: 'Either a valid receipt URL or uploaded fileData must be provided',
+    }),
 });
 
 const rejectPaymentSchema = z.object({

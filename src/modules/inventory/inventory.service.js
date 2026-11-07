@@ -271,46 +271,19 @@ class InventoryService {
 
         if (!updated) {
           // Check if an inventory entry exists for this SKU
-          const existingInv = await Inventory.findOne({ variantSku: sku });
+          const existingInv = await Inventory.findOne({
+            variantSku: sku,
+            ...(item.productId && mongoose.Types.ObjectId.isValid(item.productId) && { product: item.productId }),
+          });
 
           if (!existingInv) {
-            let targetProductId =
-              item.productId && mongoose.Types.ObjectId.isValid(item.productId)
-                ? item.productId
-                : null;
-
-            if (!targetProductId) {
-              const matchedProd = await Product.findOne({
-                $or: [{ sku: sku }, { 'variants.sku': sku }],
-              }).select('_id');
-              targetProductId = matchedProd ? matchedProd._id : new mongoose.Types.ObjectId();
-            }
-
-            const newInv = await Inventory.create({
-              product: targetProductId,
-              variantSku: sku,
-              size: '50ml',
-              quantity: 50,
-              reservedQuantity: qty,
-              status: 'in_stock',
-              history: [
-                {
-                  action: 'initial',
-                  quantityChanged: 50,
-                  previousQuantity: 0,
-                  newQuantity: 50,
-                  previousReserved: 0,
-                  newReserved: qty,
-                  reason: `Auto-initialized stock for Order ${orderNumber || 'Pending'}`,
-                  performedBy,
-                  orderNumber,
-                },
-              ],
-            });
-            updated = newInv;
-          } else {
             throw ApiError.badRequest(
-              `Insufficient available stock to reserve item with SKU: ${sku}`
+              `Item with SKU '${sku}' does not exist in inventory or is not tracked for purchase.`
+            );
+          } else {
+            const available = Math.max(0, existingInv.quantity - (existingInv.reservedQuantity || 0));
+            throw ApiError.badRequest(
+              `Insufficient available stock to reserve item with SKU: ${sku}. Requested: ${qty}, available: ${available}.`
             );
           }
         } else {

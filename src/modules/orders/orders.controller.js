@@ -1,29 +1,65 @@
+const jwt = require('jsonwebtoken');
+const env = require('../../config/env');
+const User = require('../users/users.model');
+const { getAuthCookieName } = require('../../utils/cookie');
 const asyncHandler = require('../../utils/asyncHandler');
 const ApiResponse = require('../../utils/apiResponse');
 const ordersService = require('./orders.service');
 
 /**
+ * Resolves optional authenticated user from cookie or Bearer header without blocking
+ */
+const resolveCaller = async (req) => {
+  if (req.user) return req.user;
+  try {
+    const cookieName = getAuthCookieName();
+    let token = req.cookies?.[cookieName];
+    if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+    if (!token) return null;
+    const decoded = jwt.verify(token, env.JWT_SECRET);
+    if (!decoded || !decoded.id) return null;
+    const user = await User.findById(decoded.id);
+    return user && user.status === 'active' ? user : null;
+  } catch {
+    return null;
+  }
+};
+
+/**
  * Public: Place a new order with automatic calculation & stock reservation
  */
 const createOrder = asyncHandler(async (req, res) => {
-  const userContext = req.user || null;
+  const userContext = (await resolveCaller(req)) || req.user || null;
   const order = await ordersService.createOrder(req.body, userContext);
   return ApiResponse.created(res, 'Order placed successfully', order);
 });
 
 /**
  * Public: Retrieve order confirmation by order number
+ * Requires valid orderAccessToken for guest access or authenticated ownership/admin role
  */
 const getOrderConfirmation = asyncHandler(async (req, res) => {
-  const order = await ordersService.getOrderConfirmation(req.params.orderNumber);
+  const token = req.query.token || req.headers['x-order-token'] || null;
+  const user = await resolveCaller(req);
+  const order = await ordersService.getOrderConfirmation(req.params.orderNumber, token, user);
   return ApiResponse.success(res, 200, 'Order confirmation fetched successfully', order);
 });
 
 /**
  * Public: Submit payment proof for Bank Transfer orders
+ * Requires valid orderAccessToken or authenticated ownership/admin role
  */
 const submitPaymentProof = asyncHandler(async (req, res) => {
-  const order = await ordersService.submitPaymentProof(req.params.orderNumberOrId, req.body);
+  const token = req.query.token || req.body?.token || req.headers['x-order-token'] || null;
+  const user = await resolveCaller(req);
+  const order = await ordersService.submitPaymentProof(
+    req.params.orderNumberOrId,
+    req.body,
+    user,
+    token
+  );
   return ApiResponse.success(res, 200, 'Payment proof submitted successfully', order);
 });
 

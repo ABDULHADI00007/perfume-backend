@@ -206,6 +206,19 @@ const orderSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    orderAccessToken: {
+      type: String,
+      trim: true,
+      index: true,
+    },
+    auditLog: [
+      {
+        action: { type: String, required: true },
+        timestamp: { type: Date, default: Date.now },
+        performedBy: { type: String },
+        details: { type: mongoose.Schema.Types.Mixed },
+      },
+    ],
   },
   {
     timestamps: true,
