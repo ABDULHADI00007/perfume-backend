@@ -24,7 +24,8 @@ const authenticate = asyncHandler(async (req, res, next) => {
 
   let decoded;
   try {
-    decoded = jwt.verify(token, env.JWT_SECRET);
+    // SEC-VULN-07: Explicitly allowlist HS256 algorithm to prevent algorithm confusion attacks
+    decoded = jwt.verify(token, env.JWT_SECRET, { algorithms: ['HS256'] });
   } catch (err) {
     if (err.name === 'TokenExpiredError') {
       return next(ApiError.unauthorized('Session has expired. Please log in again.'));
@@ -48,6 +49,25 @@ const authenticate = asyncHandler(async (req, res, next) => {
         `Account is ${user.status}. Please contact the system administrator.`
       )
     );
+  }
+
+  // SEC-VULN-07: Invalidate token if tokenVersion does not match active account version
+  if (user.tokenVersion !== undefined && user.tokenVersion > 0) {
+    if (decoded.tokenVersion !== user.tokenVersion) {
+      return next(
+        ApiError.unauthorized('Session has been invalidated due to a security update or password change. Please log in again.')
+      );
+    }
+  }
+
+  // SEC-VULN-07: Invalidate token if issued prior to password modification
+  if (user.passwordChangedAt && decoded.iat) {
+    const changedTimestamp = parseInt(user.passwordChangedAt.getTime() / 1000, 10);
+    if (decoded.iat < changedTimestamp) {
+      return next(
+        ApiError.unauthorized('Password recently changed. Please log in again with your new credentials.')
+      );
+    }
   }
 
   req.user = user;

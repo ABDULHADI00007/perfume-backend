@@ -39,14 +39,16 @@ class AuthService {
       throw ApiError.unauthorized(`Account is ${user.status}. Please contact the system administrator.`);
     }
 
-    // 4. Generate signed JWT token
+    // 4. Generate signed JWT token with explicit HS256 algorithm and tokenVersion (SEC-VULN-07)
     const token = jwt.sign(
       {
         id: user._id.toString(),
         role: user.role,
+        tokenVersion: user.tokenVersion || 0,
       },
       env.JWT_SECRET,
       {
+        algorithm: 'HS256',
         expiresIn: env.JWT_EXPIRES_IN,
       }
     );

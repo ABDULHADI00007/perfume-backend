@@ -15,8 +15,26 @@ const ApiError = require('./utils/apiError');
 const path = require('path');
 const apiRoutes = require('./routes');
 const logger = require('./utils/logger');
+const env = require('./config/env');
 
 const app = express();
+
+// Trust Proxy Configuration (SEC-VULN-09)
+// Explicitly configured for verified reverse proxy infrastructure (Nginx / Cloudflare / ALB)
+// Never blindly set to true to prevent client header spoofing
+const trustProxyConfig = env.TRUST_PROXY;
+if (trustProxyConfig && trustProxyConfig !== 'false') {
+  const hopCount = parseInt(trustProxyConfig, 10);
+  if (!isNaN(hopCount)) {
+    app.set('trust proxy', hopCount);
+  } else if (trustProxyConfig === 'true') {
+    app.set('trust proxy', 1);
+  } else {
+    app.set('trust proxy', trustProxyConfig);
+  }
+} else {
+  app.set('trust proxy', false);
+}
 
 // Serve static uploads
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));

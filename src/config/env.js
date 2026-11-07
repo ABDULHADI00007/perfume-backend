@@ -21,6 +21,11 @@ const envSchema = z.object({
   AUTH_COOKIE_SAME_SITE: z.enum(['lax', 'strict', 'none']).default('lax'),
   AUTH_COOKIE_DOMAIN: z.string().optional(),
 
+  TRUST_PROXY: z
+    .string()
+    .optional()
+    .default(process.env.NODE_ENV === 'production' ? '1' : 'false'),
+
   ADMIN_SEED_EMAIL: z.string().email().optional(),
   ADMIN_SEED_PASSWORD: z.string().min(8).optional(),
 

@@ -184,6 +184,8 @@ class UsersService {
     }
 
     user.password = newPassword;
+    user.tokenVersion = (user.tokenVersion || 0) + 1;
+    user.passwordChangedAt = new Date();
     await user.save(); // pre-save rehashes new password
 
     logger.info(`Password changed for user ${user.email} by ${actorUser?.email || 'system'}`);
