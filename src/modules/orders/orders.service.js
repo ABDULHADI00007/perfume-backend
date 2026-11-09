@@ -161,7 +161,7 @@ class OrdersService {
       const itemTotalPrice = Math.round(unitPrice * item.quantity * 100) / 100;
       calculatedSubtotal += itemTotalPrice;
 
-      const itemImage = primaryImage || item.image || '/images/perfumes/oyd_royal.png';
+      const itemImage = primaryImage || item.image || '/images/perfumes/collection_crown_legacy.jpg';
 
       orderItemsSnapshot.push({
         product: product._id,
