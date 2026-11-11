@@ -17,8 +17,13 @@ const envSchema = z.object({
 
   COOKIE_NAME: z.string().default('admin_token'),
   AUTH_COOKIE_NAME: z.string().default('admin_token'),
-  AUTH_COOKIE_SECURE: z.string().optional().transform((val) => val === 'true'),
-  AUTH_COOKIE_SAME_SITE: z.enum(['lax', 'strict', 'none']).default('lax'),
+  AUTH_COOKIE_SECURE: z
+    .string()
+    .optional()
+    .transform((val) => (val === undefined ? undefined : val === 'true')),
+  AUTH_COOKIE_SAME_SITE: z
+    .enum(['lax', 'strict', 'none'])
+    .default(process.env.NODE_ENV === 'production' ? 'none' : 'lax'),
   AUTH_COOKIE_DOMAIN: z.string().optional(),
 
   TRUST_PROXY: z

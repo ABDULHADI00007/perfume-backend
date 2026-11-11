@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const compression = require('compression');
@@ -16,6 +17,10 @@ const path = require('path');
 const apiRoutes = require('./routes');
 const logger = require('./utils/logger');
 const env = require('./config/env');
+const { connectDB } = require('./config/db');
+const seedSuperAdmin = require('./config/seedAdmin');
+
+let adminSeedChecked = false;
 
 const app = express();
 
@@ -95,8 +100,32 @@ const swaggerOptions = {
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// Mount Main API Routes
-app.use('/api/v1', apiRoutes);
+// Ensure Database Readiness for Serverless Environments before Main API Routes
+app.use(
+  '/api/v1',
+  async (req, res, next) => {
+    if (req.path === '/health') return next();
+    try {
+      if (mongoose.connection.readyState !== 1) {
+        await connectDB(2, 500);
+      }
+      if (!adminSeedChecked && process.env.NODE_ENV !== 'test') {
+        adminSeedChecked = true;
+        await seedSuperAdmin().catch((err) => {
+          adminSeedChecked = false;
+          logger.error('Admin seed check failed:', err.message);
+        });
+      }
+      return next();
+    } catch (err) {
+      logger.error('Database readiness check failed:', err.message);
+      return next(
+        ApiError.internal('Database connection unavailable. Verify MONGODB_URI and Atlas IP access list (0.0.0.0/0).')
+      );
+    }
+  },
+  apiRoutes
+);
 
 // Root Route
 app.get('/', (req, res) => {

@@ -2,14 +2,19 @@ const mongoose = require('mongoose');
 const logger = require('../utils/logger');
 
 let isConnected = false;
+let connectionPromise = null;
 
 /**
- * Connect to MongoDB Atlas / Local Instance with Auto-Retry
+ * Connect to MongoDB Atlas / Local Instance with Serverless Caching & Auto-Retry
  */
 const connectDB = async (retries = 5, delayMs = 3000) => {
-  if (isConnected) {
-    logger.info('Using existing MongoDB connection');
+  if (isConnected || mongoose.connection.readyState === 1) {
+    isConnected = true;
     return mongoose.connection;
+  }
+
+  if (connectionPromise) {
+    return connectionPromise;
   }
 
   const dbUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/perfume_db';
@@ -28,26 +33,32 @@ const connectDB = async (retries = 5, delayMs = 3000) => {
     logger.warn('⚠️ MongoDB Connection lost');
   });
 
-  for (let attempt = 1; attempt <= retries; attempt++) {
-    try {
-      logger.info(`Connecting to MongoDB... (Attempt ${attempt}/${retries})`);
-      const conn = await mongoose.connect(dbUri, {
-        autoIndex: process.env.NODE_ENV !== 'production',
-        serverSelectionTimeoutMS: 5000,
-      });
+  connectionPromise = (async () => {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        logger.info(`Connecting to MongoDB... (Attempt ${attempt}/${retries})`);
+        const conn = await mongoose.connect(dbUri, {
+          autoIndex: process.env.NODE_ENV !== 'production',
+          serverSelectionTimeoutMS: 5000,
+        });
 
-      isConnected = true;
-      return conn;
-    } catch (error) {
-      logger.error(`❌ MongoDB Connection Attempt ${attempt} Failed: ${error.message}`);
-      if (attempt < retries) {
-        logger.info(`Waiting ${(delayMs / 1000).toFixed(1)}s before retrying...`);
-        await new Promise((resolve) => setTimeout(resolve, delayMs));
-      } else {
-        throw new Error(`Failed to connect to MongoDB after ${retries} attempts: ${error.message}`);
+        isConnected = true;
+        return conn;
+      } catch (error) {
+        logger.error(`❌ MongoDB Connection Attempt ${attempt} Failed: ${error.message}`);
+        if (attempt < retries) {
+          logger.info(`Waiting ${(delayMs / 1000).toFixed(1)}s before retrying...`);
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
+        } else {
+          throw new Error(`Failed to connect to MongoDB after ${retries} attempts: ${error.message}`);
+        }
       }
     }
-  }
+  })().finally(() => {
+    connectionPromise = null;
+  });
+
+  return connectionPromise;
 };
 
 /**
