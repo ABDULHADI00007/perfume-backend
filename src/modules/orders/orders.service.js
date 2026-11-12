@@ -227,10 +227,8 @@ class OrdersService {
       appliedCoupon = coupon;
     }
 
-    // 3. Server-side Shipping and Tax calculations from Settings
-    const freeShippingThreshold = settings?.shipping?.freeShippingThreshold ?? 150;
-    const standardShippingFee = settings?.shipping?.standardShippingFee ?? 15;
-    const calculatedShippingFee = calculatedSubtotal >= freeShippingThreshold ? 0 : standardShippingFee;
+    // 3. Server-side Shipping (Complimentary Free Delivery nationwide) and Tax calculations
+    const calculatedShippingFee = 0;
 
     let calculatedTax = 0;
     if (settings?.tax?.enabled && settings?.tax?.rate) {

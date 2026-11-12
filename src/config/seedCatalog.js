@@ -588,8 +588,8 @@ const seedCatalog = async () => {
           format: '${amount}',
         },
         shipping: {
-          freeShippingThreshold: 150,
-          flatRateFee: 15,
+          freeShippingThreshold: 0,
+          flatRateFee: 0,
           defaultCarrier: 'FedEx Luxury Courier',
         },
         tax: {

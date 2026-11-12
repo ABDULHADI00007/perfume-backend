@@ -21,8 +21,8 @@ class SettingsService {
           format: '${amount}',
         },
         shipping: {
-          freeShippingThreshold: 150,
-          flatRateFee: 15,
+          freeShippingThreshold: 0,
+          flatRateFee: 0,
           defaultCarrier: 'FedEx',
         },
         tax: {
@@ -39,7 +39,11 @@ class SettingsService {
       _id: settings._id,
       store: settings.store || {},
       currency: settings.currency || {},
-      shipping: settings.shipping || {},
+      shipping: {
+        ...(settings.shipping || {}),
+        freeShippingThreshold: 0,
+        flatRateFee: 0,
+      },
       tax: settings.tax || {},
       payment: settings.payment || {
         cod: { enabled: true },

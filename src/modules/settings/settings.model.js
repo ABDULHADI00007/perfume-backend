@@ -17,8 +17,8 @@ const settingsSchema = new mongoose.Schema(
       format: { type: String, default: '${amount}', trim: true },
     },
     shipping: {
-      freeShippingThreshold: { type: Number, default: 100, min: 0 },
-      flatRateFee: { type: Number, default: 10, min: 0 },
+      freeShippingThreshold: { type: Number, default: 0, min: 0 },
+      flatRateFee: { type: Number, default: 0, min: 0 },
       defaultCarrier: { type: String, default: 'FedEx', trim: true },
     },
     tax: {
